@@ -1,26 +1,32 @@
-<!--
- * @Author: weisheng
- * @Date: 2021-12-22 15:19:08
- * @LastEditTime: 2023-05-31 14:38:57
- * @LastEditors: weisheng
- * @Description: 
- * @FilePath: \uniapp-vue3-fant-ts\src\pages\home\Home.vue
- * 记得注释
--->
 <template>
-  <hd-loading></hd-loading>
-  <hd-toast></hd-toast>
+  <wd-toast></wd-toast>
+  <wd-notify />
   <view class="home">
     <view class="header">
-      <hd-swiper :swiperList="swiperList" card :vertical="false" previousMargin="50rpx" nextMargin="50rpx"></hd-swiper>
+      <view class="card-swiper">
+        <wd-swiper
+          autoplay
+          :current="4"
+          custom-indicator-class="custom-indicator-class"
+          custom-image-class="custom-image"
+          custom-next-image-class="custom-image-prev"
+          custom-prev-image-class="custom-image-prev"
+          :indicator="{ type: 'dots' }"
+          :list="swiperList"
+          previousMargin="24px"
+          nextMargin="24px"
+        ></wd-swiper>
+      </view>
     </view>
     <view class="main">
-      <hd-grid :column-num="4">
-        <hd-grid-item use-slot v-for="(value, index) in chanel" :key="index" @click="doNavi">
-          <image class="main-img" :src="value.image" />
-          <text class="main-txt">{{ value.txt }}</text>
-        </hd-grid-item>
-      </hd-grid>
+      <wd-grid :column="4" border clickable>
+        <wd-grid-item use-slot v-for="(value, index) in chanel" :key="index" @itemclick="doNavi">
+          <view style="display: flex; flex-direction: column; align-items: center">
+            <image class="main-img" :src="value.image" />
+            <text class="main-txt">{{ value.txt }}</text>
+          </view>
+        </wd-grid-item>
+      </wd-grid>
     </view>
   </view>
 </template>
@@ -28,27 +34,23 @@
 <script lang="ts" setup>
 import DemoApi from '@/api/DemoApi'
 import Chanel from '@/model/Chanel'
-import { useLoading, useToast } from '@/uni_modules/fant-mini-plus'
 import axios from 'axios'
 import { ref } from 'vue'
-const loading = useLoading()
-const toast = useToast()
+import { useNotify, useToast } from 'wot-design-uni'
+const { show: showToast, loading: showLoading, close: hideLoading } = useToast()
+
 const router = useRouter()
 const swiperList = ref([
-  {
-    img: 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'
-  },
-  {
-    img: 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'
-  },
-  {
-    img: 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'
-  }
+  'https://cdn.jsdelivr.net/npm/wot-design-uni-assets/redpanda.jpg',
+  'https://cdn.jsdelivr.net/npm/wot-design-uni-assets/capybara.jpg',
+  'https://cdn.jsdelivr.net/npm/wot-design-uni-assets/panda.jpg',
+  'https://img.yzcdn.cn/vant/cat.jpeg',
+  'https://cdn.jsdelivr.net/npm/wot-design-uni-assets/meng.jpg'
 ])
 
 const chanel = ref<Chanel[]>([])
 
-onShow(() => {
+onMounted(() => {
   doInit()
   setTimeout(() => {
     doInit('same')
@@ -66,21 +68,21 @@ function doNavi() {
  * 初始化
  */
 function doInit(abortRequest: 'same' | 'all' | 'none' = 'none') {
-  loading.showLoading({})
+  showLoading({ loadingType: 'ring', msg: '初始化' })
   DemoApi.init(abortRequest)
     .then((resp) => {
-      loading.hideLoading()
+      hideLoading()
       chanel.value = resp.data || []
     })
     .catch((error) => {
-      loading.hideLoading()
+      hideLoading()
       // 判断如果是取消的请求则不提示
       if (axios.isCancel(error)) {
         return
       }
-      toast.showToast({
-        title: error.msg,
-        icon: 'error'
+      showToast({
+        msg: error.msg,
+        iconName: 'error'
       })
     })
 }
@@ -95,6 +97,22 @@ function doInit(abortRequest: 'same' | 'all' | 'none' = 'none') {
   padding: 0 24rpx 24rpx;
   .header {
     margin-bottom: 24rpx;
+    .card-swiper {
+      --wot-swiper-radius: 0;
+      --wot-swiper-item-padding: 0 24rpx;
+      --wot-swiper-nav-dot-color: #e7e7e7;
+      --wot-swiper-nav-dot-active-color: #4d80f0;
+      padding-bottom: 24rpx;
+      // :deep(.custom-indicator-class) {
+      //   bottom: -16px;
+      // }
+      :deep(.custom-image) {
+        border-radius: 12rpx;
+      }
+      :deep(.custom-image-prev) {
+        height: 168px !important;
+      }
+    }
   }
   .main {
     &-img {
